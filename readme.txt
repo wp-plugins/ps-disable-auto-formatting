@@ -24,6 +24,9 @@ And when editing in the visual mode, it achieves to generate natural changing li
 * Batch formatting to all articles that you have already posted.
 
 = Version History =
+* **0.9.1**
+ * bugfix : disappearing paragraph element with swithing mode in some browsers
+ * compatible with quickpress
 * **0.9.0**
  * Public release
 

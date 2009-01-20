@@ -1,9 +1,9 @@
 <?php
 /*
 Plugin Name: PS Disable Auto Formatting
-Plugin URI: http://www.web-strategy.jp/wp_plugin/ps_disable_auto_formatting/
+Plugin URI: http://www.web-strategy.co.jp/
 Description: PS Disable Auto Formatting is able to disable function auto formatting (wpautop) and save &lt;p&gt; and &lt;br /&gt; formatted content.
-Version: 0.9.0
+Version: 0.9.1
 Author: Hitoshi Omagari
 Author URI: http://www.web-strategy.jp/
 */
@@ -18,7 +18,7 @@ var $setting_items = array(
 	'term description formatting' => 'term_description',
 );
 
-var $mce_version = '20081129';
+var $mce_version = '20090120';
 
 function __construct() {
 	global $wp_version;
@@ -27,6 +27,7 @@ function __construct() {
 		add_action( 'init', array( &$this, 'disable_auto_formatting_init' ) );
 		add_action( 'admin_menu', array( &$this, 'add_disable_formatting_setting_page') );
 		add_filter( 'print_scripts_array', array( &$this, 'rewrite_default_script' ) );
+		add_filter( 'wp_insert_post_data', array( &$this, 'formatting_quickpress_post' ) );
 	} else {
 		add_action('admin_notices', array( &$this, 'version_too_old' ) );
 	}
@@ -89,18 +90,25 @@ function set_default_settings() {
 function rewrite_default_script( $todo ) {
 	global $wp_scripts;
 	
-	if ( function_exists( 'mce_version' ) ) {
-		$mce_version = mce_version();
-	} else {
-		$mce_version = $this->mce_version;
-	}
-	$wp_scripts->add( 'ps_editor', get_option( 'home' ) . '/' . str_replace( str_replace( '\\', '/', ABSPATH ), '', str_replace( '\\', '/', dirname( __file__ ) ) ) . '/js/ps_editor.js', false, $mce_version );
+	$wp_scripts->add( 'ps_editor', get_option( 'home' ) . '/' . str_replace( str_replace( '\\', '/', ABSPATH ), '', str_replace( '\\', '/', dirname( __file__ ) ) ) . '/js/ps_editor.js', false, $this->mce_version );
 	
 	$key = array_search( 'editor', $todo );
 	if ( $key !== false ) {
 		$todo[$key] = 'ps_editor';
 	}
 	return $todo;
+}
+
+
+function formatting_quickpress_post( $data ) {
+	global $action;
+
+	if ( in_array( $action, array( 'post-quickpress-publish', 'post-quickpress-save' ) ) ) {
+		if ( empty( $_POST['quickpress_post_ID'] ) ) {
+			$data['post_content'] = wpautop( $data['post_content'] );
+		}
+	}
+	return $data;
 }
 
 

@@ -1,4 +1,3 @@
-
 switchEditors = {
 
 	mode : '',
@@ -45,6 +44,9 @@ switchEditors = {
 		var blocklist1 = 'blockquote|ul|ol|li|table|thead|tbody|tr|th|td|div|h[1-6]|p';
 		content = content.replace(new RegExp('\\s*</('+blocklist1+')>\\s*', 'mg'), '</$1>\n');
 		content = content.replace(new RegExp('\\s*<(('+blocklist1+')[^>]*)>', 'mg'), '\n<$1>');
+		
+		content = content.replace(new RegExp('<p ?[^>]*>[\\s\\n]*<(/?script[^>]*)>', 'mg'), '\n<$1>');
+		content = content.replace(new RegExp('<(/?script[^>]*)>[\\s\\n]*</p>', 'mg'), '\n<$1>');
 
 		// Fix some block element newline issues
 		content = content.replace(new RegExp('\\s*<div', 'mg'), '\n<div');
@@ -123,34 +125,33 @@ switchEditors = {
 	},
 
 	wpautop : function(pee) {
-		var blocklist = 'table|thead|tfoot|caption|colgroup|tbody|tr|td|th|div|dl|dd|dt|ul|ol|li|pre|select|form|blockquote|address|math|p|h[1-6]';
-
+		var blocklist = 'table|thead|tfoot|caption|colgroup|tbody|tr|td|th|div|dl|dd|dt|ul|ol|li|pre|select|form|blockquote|address|math|p|h[1-6]|script';
+		var blocklist2 = 'table|thead|tfoot|caption|colgroup|tbody|tr|td|th|div|dl|dd|dt|ul|ol|li|pre|select|form|blockquote|address|math|h[1-6]|script';
 		pee = pee + "\n\n";
-//		pee = pee.replace(new RegExp('<br />\\s*<br />', 'gi'), "\n\n");
 		pee = pee.replace(new RegExp('(<(?:'+blocklist+')[^>]*>)', 'gi'), "\n$1");
 		pee = pee.replace(new RegExp('(</(?:'+blocklist+')>)', 'gi'), "$1\n\n");
 		pee = pee.replace(new RegExp("\\r\\n|\\r", 'g'), "\n");
 		pee = pee.replace(new RegExp("\\n\\s*\\n+", 'g'), "\n\n");
 		pee = pee.replace(new RegExp('([\\s\\S]+?)\\n\\n', 'mg'), "<p>$1</p>\n");
-//		pee = pee.replace(new RegExp('<p>\\s*?</p>', 'gi'), '');
 		pee = pee.replace(new RegExp('<p>\\s*(</?(?:'+blocklist+')[^>]*>)\\s*</p>', 'gi'), "$1");
 		pee = pee.replace(new RegExp("<p>(<li.+?)</p>", 'gi'), "$1");
+		pee = pee.replace(new RegExp("<p ?[^>]*>(<!--(.*)?-->)", 'gi'), "$1");
+		pee = pee.replace(new RegExp("(<!--(.*)?-->)</p>", 'gi'), "$1");
 		pee = pee.replace(new RegExp('<p>\\s*<blockquote([^>]*)>', 'gi'), "<blockquote$1><p>");
 		pee = pee.replace(new RegExp('</blockquote>\\s*</p>', 'gi'), '</p></blockquote>');
-		pee = pee.replace(new RegExp('<p>\\s*(</?(?:'+blocklist+')[^>]*>)', 'gi'), "$1");
-		pee = pee.replace(new RegExp('(</?(?:'+blocklist+')[^>]*>)\\s*</p>', 'gi'), "$1");
-		pee = pee.replace(new RegExp('\\s*\\n', 'gi'), "<br />\n");
+		pee = pee.replace(new RegExp('<p>[\\s\\n]*(<(?:'+blocklist+')[^>]*>)', 'gi'), "$1");
+		pee = pee.replace(new RegExp('<p>[\\s\\n]*(</(?:'+blocklist2+')[^>]*>)', 'gi'), "$1");
+		pee = pee.replace(new RegExp('(<(?:'+blocklist2+')[^>]*>)[\\s\\n]*</p>', 'gi'), "$1");
+		pee = pee.replace(new RegExp('(</(?:'+blocklist+')[^>]*>)[\\s\\n]*</p>', 'gi'), "$1");
 		pee = pee.replace(new RegExp('(</?(?:'+blocklist+')[^>]*>)\\s*<br />', 'gi'), "$1");
 		pee = pee.replace(new RegExp('<br />(\\s*</?(?:p|li|div|dl|dd|dt|th|pre|td|ul|ol)>)', 'gi'), '$1');
 		pee = pee.replace(new RegExp('(?:<p>|<br ?/?>)*\\s*\\[caption([^\\[]+)\\[/caption\\]\\s*(?:</p>|<br ?/?>)*', 'gi'), '[caption$1[/caption]');
-		// pee = pee.replace(new RegExp('^((?:&nbsp;)*)\\s', 'mg'), '$1&nbsp;');
 
 		// Fix the pre|script tags
 		pee = pee.replace(/<(pre|script)[^>]*>[\s\S]+?<\/\1>/g, function(a) {
 			a = a.replace(/<br ?\/?>[\r\n]*/g, '\n');
 			return a.replace(/<\/?p( [^>]*)?>[\r\n]*/g, '\n');
 		});
-
 		return pee;
 	}
 }
