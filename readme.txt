@@ -24,6 +24,10 @@ And when editing in the visual mode, it achieves to generate natural changing li
 * Batch formatting to all articles that you have already posted.
 
 = Version History =
+* **0.9.2**
+ * bugfix : disappearing nothing included paragraph and linebreak element when load a post to edit
+ * bugfix : wrong javascript path in case of WordPress is set as sub directory.
+ * bugfix : in version 2.6 or 2.5, javascript isn't replaced.
 * **0.9.1**
  * bugfix : disappearing paragraph element with swithing mode in some browsers
  * compatible with quickpress

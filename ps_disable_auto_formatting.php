@@ -3,7 +3,7 @@
 Plugin Name: PS Disable Auto Formatting
 Plugin URI: http://www.web-strategy.co.jp/
 Description: PS Disable Auto Formatting is able to disable function auto formatting (wpautop) and save &lt;p&gt; and &lt;br /&gt; formatted content.
-Version: 0.9.1
+Version: 0.9.2
 Author: Hitoshi Omagari
 Author URI: http://www.web-strategy.jp/
 */
@@ -18,7 +18,7 @@ var $setting_items = array(
 	'term description formatting' => 'term_description',
 );
 
-var $mce_version = '20090120';
+var $mce_version = '20080121';
 
 function __construct() {
 	global $wp_version;
@@ -28,6 +28,8 @@ function __construct() {
 		add_action( 'admin_menu', array( &$this, 'add_disable_formatting_setting_page') );
 		add_filter( 'print_scripts_array', array( &$this, 'rewrite_default_script' ) );
 		add_filter( 'wp_insert_post_data', array( &$this, 'formatting_quickpress_post' ) );
+		add_action( 'media_buttons', array( &$this, 'check_edit_mode_and_add_ichedit_pre' ), 9 );
+		add_action( 'media_buttons', array( &$this, 'delete_filtering_wp_richedit_pre' ) );
 	} else {
 		add_action('admin_notices', array( &$this, 'version_too_old' ) );
 	}
@@ -55,7 +57,6 @@ function disable_auto_formatting_init() {
 	} elseif ( ! $this->option_settings ) {
 		$this->option_settings = array();
 	}
-	
 	$this->delete_default_filters();
 }
 
@@ -88,13 +89,26 @@ function set_default_settings() {
 
 
 function rewrite_default_script( $todo ) {
-	global $wp_scripts;
-	
-	$wp_scripts->add( 'ps_editor', get_option( 'home' ) . '/' . str_replace( str_replace( '\\', '/', ABSPATH ), '', str_replace( '\\', '/', dirname( __file__ ) ) ) . '/js/ps_editor.js', false, $this->mce_version );
-	
+	global $wp_version, $wp_scripts;
+
+	if ( version_compare( $wp_version, '2.7', '>=' ) ) {
+		$scripyt_src = get_option( 'siteurl' ) . '/' . str_replace( str_replace( '\\', '/', ABSPATH ), '', str_replace( '\\', '/', dirname( __file__ ) ) ) . '/js/270/ps_editor.js';
+	} else {
+		$scripyt_src = get_option( 'siteurl' ) . '/' . str_replace( str_replace( '\\', '/', ABSPATH ), '', str_replace( '\\', '/', dirname( __file__ ) ) ) . '/js/250/ps_editor.js';
+		if ( version_compare( $wp_version, '2.6', '>=' ) ) {
+			$wp_scripts->registered['editor_functions']->src = $scripyt_src;
+		} else {
+			$wp_scripts->scripts['editor_functions']->src = $scripyt_src;
+		}
+	}
+	$wp_scripts->add( 'ps_editor', $scripyt_src, false, $this->mce_version );
 	$key = array_search( 'editor', $todo );
 	if ( $key !== false ) {
-		$todo[$key] = 'ps_editor';
+		if ( version_compare( $wp_version, '2.7', '>=' ) ) {
+			$todo[$key] = 'ps_editor';
+		} else {
+			unset( $todo[$key] );
+		}
 	}
 	return $todo;
 }
@@ -109,6 +123,29 @@ function formatting_quickpress_post( $data ) {
 		}
 	}
 	return $data;
+}
+
+
+function delete_filtering_wp_richedit_pre() {
+	remove_filter( 'the_editor_content', 'wp_richedit_pre' );
+}
+
+
+function check_edit_mode_and_add_ichedit_pre() {
+	global $wp_filter;
+	if ( isset( $wp_filter['the_editor_content'][10]['wp_richedit_pre'] ) ) {
+		add_filter( 'the_editor_content', array( &$this, 'ps_richedit_pre' ) );
+	}
+}
+
+
+function ps_richedit_pre( $text ) {
+	if ( empty($text) ) return apply_filters('richedit_pre', '');
+
+	$output = convert_chars($text);
+	$output = htmlspecialchars($output, ENT_NOQUOTES);
+
+	return apply_filters('richedit_pre', $output);
 }
 
 
