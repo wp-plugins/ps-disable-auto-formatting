@@ -2,12 +2,10 @@
 /*
 Plugin Name: PS Disable Auto Formatting
 Plugin URI: http://www.web-strategy.jp/wp_plugin/ps_disable_auto_formatting/
-Description: PS Disable Auto Formatting is able to disable function auto formatting (wpautop) and save &lt;p&gt; and &lt;br /&gt; formatted content.
-Version: 0.9.2
+Description: PS 1.0.0
 Author: Hitoshi Omagari
 Author URI: http://www.web-strategy.jp/
 */
-$ps_disable_auto_formatting =& new ps_disable_auto_formatting();
 
 class ps_disable_auto_formatting {
 	
@@ -91,7 +89,9 @@ function set_default_settings() {
 function rewrite_default_script( $todo ) {
 	global $wp_version, $wp_scripts;
 
-	if ( version_compare( $wp_version, '2.7', '>=' ) ) {
+	if ( version_compare( $wp_version, '2.8', '>=' ) ) {
+		$scripyt_src = get_option( 'siteurl' ) . '/' . str_replace( str_replace( '\\', '/', ABSPATH ), '', str_replace( '\\', '/', dirname( __file__ ) ) ) . '/js/280/ps_editor.js';
+	} elseif ( version_compare( $wp_version, '2.7', '>=' ) ) {
 		$scripyt_src = get_option( 'siteurl' ) . '/' . str_replace( str_replace( '\\', '/', ABSPATH ), '', str_replace( '\\', '/', dirname( __file__ ) ) ) . '/js/270/ps_editor.js';
 	} else {
 		$scripyt_src = get_option( 'siteurl' ) . '/' . str_replace( str_replace( '\\', '/', ABSPATH ), '', str_replace( '\\', '/', dirname( __file__ ) ) ) . '/js/250/ps_editor.js';
@@ -303,3 +303,5 @@ function version_too_old() {
 }
 
 } // class end
+
+$ps_disable_auto_formatting =& new ps_disable_auto_formatting();

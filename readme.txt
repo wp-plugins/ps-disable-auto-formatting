@@ -2,7 +2,7 @@
 Contributors: jim912
 Tags: auto formatting, formatting, format, paragraph, linebreak, wpautop
 Requires at least: 2.5
-Tested up to: 2.7
+Tested up to: 2.8.3
 Stable tag: trunk
 
 Stops the automatic forming and the HTML tag removal in the html mode of WordPress, and generates a natural paragraph and changing line.
@@ -22,17 +22,6 @@ And when editing in the visual mode, it achieves to generate natural changing li
 * Disable the auto formating in the each areas of post, comment, excerpt, terms description.
 * Stops the auto removal of p and br tag when editing html mode.
 * Batch formatting to all articles that you have already posted.
-
-= Version History =
-* **0.9.2**
- * bugfix : disappearing nothing included paragraph and linebreak element when load a post to edit
- * bugfix : wrong javascript path in case of WordPress is set as sub directory.
- * bugfix : in version 2.6 or 2.5, javascript isn't replaced.
-* **0.9.1**
- * bugfix : disappearing paragraph element with swithing mode in some browsers
- * compatible with quickpress
-* **0.9.0**
- * Public release
 
 == Installation ==
 
@@ -74,6 +63,20 @@ When "Batch formatting" button is pushed, the batch plastic operation is done. T
 = It displays as "It is necessary to permit the batch formatting" and cannot do the batch formatting. =
 To prevent the operational error, the batch processing is not done if there is no permission. 
 Please check "Permit batch formatting" check box.
+
+== Changelog ==
+* **1.0.0**
+ * compatible with WordPress version 2.8
+  (bugfix : post area is whiteouted when switching visual to html mode in version 2.8)
+* **0.9.2**
+ * bugfix : disappearing nothing included paragraph and linebreak element when load a post to edit
+ * bugfix : wrong javascript path in case of WordPress is set as sub directory.
+ * bugfix : in version 2.6 or 2.5, javascript isn't replaced.
+* **0.9.1**
+ * bugfix : disappearing paragraph element with swithing mode in some browsers
+ * compatible with quickpress
+* **0.9.0**
+ * Public release
 
 == Screenshots ==
 1. Administration interface of PS Disable Auto Formatting
