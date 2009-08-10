@@ -65,7 +65,7 @@ To prevent the operational error, the batch processing is not done if there is n
 Please check "Permit batch formatting" check box.
 
 == Changelog ==
-* **1.0.1**
+* **1.0.2**
  * compatible with WordPress version 2.8
   (bugfix : post area is whiteouted when switching visual to html mode in version 2.8)
 * **0.9.2**

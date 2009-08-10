@@ -2,7 +2,7 @@
 /*
 Plugin Name: PS Disable Auto Formatting
 Plugin URI: http://www.web-strategy.jp/wp_plugin/ps_disable_auto_formatting/
-Description: 1.0.0
+Description: 1.0.2
 Author: Hitoshi Omagari
 Author URI: http://www.web-strategy.jp/
 */
