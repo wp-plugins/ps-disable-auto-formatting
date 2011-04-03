@@ -3,7 +3,7 @@
 Plugin Name: PS Disable Auto Formatting
 Plugin URI: http://www.web-strategy.jp/wp_plugin/ps_disable_auto_formatting/
 Description: PS Disable Auto Formatting is able to disable function auto formatting (wpautop) and save &lt;p&gt; and &lt;br /&gt; formatted content.
-Version: 1.0.4
+Version: 1.0.5
 Author: Hitoshi Omagari
 Author URI: http://www.web-strategy.jp/
 */
@@ -164,7 +164,7 @@ function output_disable_formatting_setting_page() {
 	if( isset( $_POST['_wpnonce'] ) && $_POST['_wpnonce'] ) {
 		check_admin_referer();
 		
-		if ( $_POST['batch_formatting'] ) {
+		if ( isset( $_POST['batch_formatting'] ) && $_POST['batch_formatting'] ) {
 			if ( $_POST['allow_batch_formatting'] ) {
 				$time_limit = sprintf( '%04d-%02d-%02d %02d:%02d:00', $_POST['aa'], $_POST['mm'], $_POST['jj'], $_POST['hh'], $_POST['mn'] );
 				$sql = "
@@ -211,16 +211,18 @@ AND		`post_modified` < '$time_limit'
 			}
 		} else {
 			if ( isset( $_POST['ps_disable_auto_formatting'] ) ) {
-				$post_data = striplashes_deep( $_POST['ps_disable_auto_formatting'] );
-				foreach ( $post_data as $key => $func ) {
-					if ( ! in_array( $func, $this->setting_items) ) {
-						unset( $_POST['ps_disable_auto_formatting'][$key] );
-					}
+				$post_data = stripslashes_deep( $_POST['ps_disable_auto_formatting'] );
+			} else {
+				$post_data = array();
+			}
+			foreach ( $post_data as $key => $func ) {
+				if ( ! in_array( $func, $this->setting_items) ) {
+					unset( $_POST['ps_disable_auto_formatting'][$key] );
 				}
-				$ret = update_option( 'ps_disable_auto_formatting', $post_data );
-				if ( $ret ) {
-					$this->option_settings = get_option( 'ps_disable_auto_formatting' );
-				}
+			}
+			$ret = update_option( 'ps_disable_auto_formatting', $post_data );
+			if ( $ret ) {
+				$this->option_settings = get_option( 'ps_disable_auto_formatting' );
 			}
 		}
 	}
