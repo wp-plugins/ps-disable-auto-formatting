@@ -3,7 +3,7 @@
 Plugin Name: PS Disable Auto Formatting
 Plugin URI: http://www.web-strategy.jp/wp_plugin/ps_disable_auto_formatting/
 Description: PS Disable Auto Formatting is able to disable function auto formatting (wpautop) and save &lt;p&gt; and &lt;br /&gt; formatted content.
-Version: 1.0.3
+Version: 1.0.4
 Author: Hitoshi Omagari
 Author URI: http://www.web-strategy.jp/
 */
@@ -27,7 +27,7 @@ function __construct() {
 		add_action( 'admin_menu', array( &$this, 'add_disable_formatting_setting_page') );
 		add_filter( 'print_scripts_array', array( &$this, 'rewrite_default_script' ) );
 		add_filter( 'wp_insert_post_data', array( &$this, 'formatting_quickpress_post' ) );
-		add_action( 'media_buttons', array( &$this, 'check_edit_mode_and_add_ichedit_pre' ), 9 );
+		add_action( 'media_buttons', array( &$this, 'check_edit_mode_and_add_richedit_pre' ), 9 );
 		add_action( 'media_buttons', array( &$this, 'delete_filtering_wp_richedit_pre' ) );
 	} else {
 		add_action('admin_notices', array( &$this, 'version_too_old' ) );
@@ -102,13 +102,17 @@ function rewrite_default_script( $todo ) {
 			$wp_scripts->scripts['editor_functions']->src = $scripyt_src;
 		}
 	}
-	$wp_scripts->add( 'ps_editor', $scripyt_src, false, $this->mce_version );
-	$key = array_search( 'editor', $todo );
-	if ( $key !== false ) {
-		if ( version_compare( $wp_version, '2.7', '>=' ) ) {
-			$todo[$key] = 'ps_editor';
-		} else {
-			unset( $todo[$key] );
+	wp_enqueue_script( 'ps_editor', $scripyt_src );
+	if ( version_compare( $wp_version, '3.1', '>=' ) ) {
+		wp_dequeue_script( 'editor' );
+	} else {
+		$key = array_search( 'editor', $todo );
+		if ( $key !== false ) {
+			if ( version_compare( $wp_version, '2.7', '>=' ) ) {
+				$todo[$key] = 'ps_editor';
+			} else {
+				unset( $todo[$key] );
+			}
 		}
 	}
 	return $todo;
@@ -132,7 +136,7 @@ function delete_filtering_wp_richedit_pre() {
 }
 
 
-function check_edit_mode_and_add_ichedit_pre() {
+function check_edit_mode_and_add_richedit_pre() {
 	global $wp_filter;
 	if ( isset( $wp_filter['the_editor_content'][10]['wp_richedit_pre'] ) ) {
 		add_filter( 'the_editor_content', array( &$this, 'ps_richedit_pre' ) );
@@ -151,19 +155,13 @@ function ps_richedit_pre( $text ) {
 
 
 function add_disable_formatting_setting_page() {
-		if ( function_exists( 'add_options_page' ) ) {
-			add_options_page( 'PS Disable Auto Formatting',
-				__( 'Auto Formatting', 'ps_disable_auto_formatting' ),
-				8,
-				basename( __FILE__ ),
-				array( &$this, 'output_disable_formatting_setting_page') );
-		}
+	add_options_page( 'PS Disable Auto Formatting', __( 'Auto Formatting', 'ps_disable_auto_formatting' ), 'activate_plugins', basename( __FILE__ ), array( &$this, 'output_disable_formatting_setting_page') );
 }
 
 
 function output_disable_formatting_setting_page() {
 	global $wpdb, $wp_error;
-	if( $_POST['_wpnonce'] ) {
+	if( isset( $_POST['_wpnonce'] ) && $_POST['_wpnonce'] ) {
 		check_admin_referer();
 		
 		if ( $_POST['batch_formatting'] ) {
@@ -212,14 +210,17 @@ AND		`post_modified` < '$time_limit'
 				$error_mes = __( 'Require checked allow batch formatting.', 'ps_disable_auto_formatting' );
 			}
 		} else {
-			foreach ( $_POST['ps_disable_auto_formatting'] as $key => $func ) {
-				if ( ! in_array( $func, $this->setting_items) ) {
-					unset( $_POST['ps_disable_auto_formatting'][$key] );
+			if ( isset( $_POST['ps_disable_auto_formatting'] ) ) {
+				$post_data = striplashes_deep( $_POST['ps_disable_auto_formatting'] );
+				foreach ( $post_data as $key => $func ) {
+					if ( ! in_array( $func, $this->setting_items) ) {
+						unset( $_POST['ps_disable_auto_formatting'][$key] );
+					}
 				}
-			}
-			$ret = update_option( 'ps_disable_auto_formatting', $_POST['ps_disable_auto_formatting'] );
-			if ( $ret ) {
-				$this->option_settings = get_option( 'ps_disable_auto_formatting' );
+				$ret = update_option( 'ps_disable_auto_formatting', $post_data );
+				if ( $ret ) {
+					$this->option_settings = get_option( 'ps_disable_auto_formatting' );
+				}
 			}
 		}
 	}
@@ -228,19 +229,19 @@ AND		`post_modified` < '$time_limit'
 		<div class=wrap>
 			<?php if ( function_exists( 'screen_icon' ) ) { screen_icon(); } ?>
 			<h2><?php _e( 'Auto Formatting', 'ps_disable_auto_formatting' ); ?></h2>
-			<?php if ( $ret ) { ?>
+			<?php if ( isset( $ret ) && $ret ) { ?>
 			<div id="message" class="updated">
 				<p><?php _e('The settings has changed successfully.', 'ps_disable_auto_formatting' );?></p>
 			</div>
-			<?php } elseif ( $batch_ret ) { ?>
+			<?php } elseif ( isset( $batch_ret ) && $batch_ret ) { ?>
 			<div id="message" class="updated">
 				<p><?php printf( __( 'Batch fomatting process has completed. total %d posts formatted.', 'ps_disable_auto_formatting' ), count( $formatting_posts ) );?></p>
 			</div>
-			<?php } elseif ( $error_mes ) { ?>
+			<?php } elseif ( isset( $error_mes ) && $error_mes ) { ?>
 			<div id="notice" class="error">
 				<p><?php echo wp_specialchars( $error_mes ); ?></p>
 			</div>
-			<?php } elseif ( $_POST['ps_disable_auto_formatting'] && ! $ret ) { ?>
+			<?php } elseif ( isset( $_POST['ps_disable_auto_formatting'] ) && $_POST['ps_disable_auto_formatting'] && isset( $ret ) && ! $ret ) { ?>
 			<div id="notice" class="error">
 				<p><?php _e('The settings has not been changed. There were no changes or failed to update the data base.', 'ps_disable_auto_formatting' );?></p>
 			</div>
@@ -261,7 +262,7 @@ AND		`post_modified` < '$time_limit'
 				<p class="submit">
 					<input type="submit" name="ps_disable_auto_formatting_submit" class="button-primary" value="<?php _e( 'Save Changes' ); ?>" />
 				</p>
-<?php if ( current_user_can( 'edit_post' ) && current_user_can( 'edit_page' ) ) { ?>
+<?php if ( current_user_can( 'edit_posts' ) && current_user_can( 'edit_pages' ) ) { ?>
 				<h3><?php _e( 'Batch formatting for past posts' ,'ps_disable_auto_formatting' ); ?></h3>
 				<?php _e( '<p>To make it display the same as the format before run this plug-in,
 automatic operation process to the specified period of the posts.<br />
@@ -273,7 +274,7 @@ This process is safe even if you do two or more times, perhaps. We cannot assure
 					<tr>
 						<th><?php _e( 'Formatting before' ,'ps_disable_auto_formatting' ); ?></th>
 						<td>
-							<?php touch_time( 0, 0, 0, 1 ); ?><br />
+							<?php global $comment; $comment->comment_date = current_time( 'mysql' ); touch_time( 0, 0, 0, 1 ); ?><br />
 							<?php _e( '* Formatting posts and pages are modified before this time.' ,'ps_disable_auto_formatting' ); ?>
 						</td>
 					</tr>
