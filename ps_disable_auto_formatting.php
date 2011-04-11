@@ -3,7 +3,7 @@
 Plugin Name: PS Disable Auto Formatting
 Plugin URI: http://www.web-strategy.jp/wp_plugin/ps_disable_auto_formatting/
 Description: PS Disable Auto Formatting is able to disable function auto formatting (wpautop) and save &lt;p&gt; and &lt;br /&gt; formatted content.
-Version: 1.0.5
+Version: 1.0.6
 Author: Hitoshi Omagari
 Author URI: http://www.web-strategy.jp/
 */
@@ -102,17 +102,13 @@ function rewrite_default_script( $todo ) {
 			$wp_scripts->scripts['editor_functions']->src = $scripyt_src;
 		}
 	}
-	wp_enqueue_script( 'ps_editor', $scripyt_src );
-	if ( version_compare( $wp_version, '3.1', '>=' ) ) {
-		wp_dequeue_script( 'editor' );
-	} else {
-		$key = array_search( 'editor', $todo );
-		if ( $key !== false ) {
-			if ( version_compare( $wp_version, '2.7', '>=' ) ) {
-				$todo[$key] = 'ps_editor';
-			} else {
-				unset( $todo[$key] );
-			}
+	$wp_scripts->add( 'ps_editor', $scripyt_src, false, $this->mce_version );
+	$key = array_search( 'editor', $todo );
+	if ( $key !== false ) {
+		if ( version_compare( $wp_version, '2.7', '>=' ) ) {
+			$todo[$key] = 'ps_editor';
+		} else {
+			unset( $todo[$key] );
 		}
 	}
 	return $todo;
